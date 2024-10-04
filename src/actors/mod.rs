@@ -1,6 +1,8 @@
-use std::{any::Any, future::Future, pin::Pin};
+use std::future::Future;
 
-use crate::message::Message;
+use async_channel::Sender;
+
+use crate::message::{Envelope, Message};
 
 pub trait Actor {
     fn starting(&mut self) -> impl Future<Output = ()> + Send {
@@ -12,31 +14,23 @@ pub trait Actor {
     }
 }
 
+pub trait Handler<M>
+where
+    Self: Actor,
+    M: Message,
+{
+    fn handle(&mut self, msg: M) -> impl Future<Output = ()> + Send;
+}
+
 #[derive(Clone)]
 pub struct Address<A> {
-    sender: async_channel::Sender<Envelope<A>>,
+    sender: Sender<Envelope<A>>,
 }
 
-type FutType<A> =
-    Box<dyn for<'a> FnOnce(&'a mut A, Box<dyn Any>) -> Pin<Box<dyn Future<Output = ()> + 'a>>>;
-
-pub struct Envelope<A> {
-    content: Box<dyn Any>,
-    mapping: FutType<A>,
-}
-
-impl<A> Envelope<A> {
-    pub async fn resolve(self, actor: &mut A) {
-        let fut = (self.mapping)(actor, self.content);
-        fut.await;
+impl<A> Address<A> {
+    pub(crate) fn new(sender: Sender<Envelope<A>>) -> Self {
+        Self { sender }
     }
-}
-
-fn constrain<A, F>(fun: F) -> FutType<A>
-where
-    F: 'static + for<'a> FnOnce(&'a mut A, Box<dyn Any>) -> Pin<Box<dyn Future<Output = ()> + 'a>>,
-{
-    Box::new(fun)
 }
 
 impl<A: 'static + Actor> Address<A> {
@@ -45,25 +39,8 @@ impl<A: 'static + Actor> Address<A> {
         A: Handler<M>,
         M: 'static + Message,
     {
-        let content: Box<dyn Any> = Box::new(message);
-        let data = constrain::<A, _>(|actor, msg| {
-            let message: Box<M> = msg.downcast().unwrap();
-            Box::pin(async move { actor.handle(*message).await })
-        });
-
-        let env = Envelope {
-            mapping: Box::new(data),
-            content,
-        };
+        let env = Envelope::pack(message);
 
         self.sender.send(env).await;
     }
-}
-
-pub trait Handler<M>
-where
-    Self: Actor,
-    M: Message,
-{
-    fn handle(&mut self, msg: M) -> impl Future<Output = ()> + Send;
 }
