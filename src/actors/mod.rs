@@ -16,10 +16,18 @@ type FutType<A> = Box<
 >;
 
 pub struct Envelope<A> {
-    data: FutType<A>,
+    content: Box<dyn Any>,
+    mapping: FutType<A>,
 }
 
-fn fuckery<A, F>(fun: F) -> FutType<A>
+impl<A> Envelope<A> {
+    pub async fn resolve(self, actor: &mut A) {
+        let fut = (self.mapping)(actor, self.content);
+        fut.await;
+    }
+}
+
+fn constraint<A, F>(fun: F) -> FutType<A>
 where
     F: 'static
         + for<'a> FnOnce(
@@ -30,19 +38,21 @@ where
     Box::new(fun)
 }
 
-impl<A: Actor> Address<A> {
+impl<A: 'static + Actor> Address<A> {
     pub fn send<M>(&self, message: M)
     where
         A: Handler<M>,
         M: 'static + Message,
     {
-        let data = fuckery::<A>(|actor, msg| {
+        let content: Box<dyn Any> = Box::new(message);
+        let data = constraint::<A, _>(|actor, msg| {
             let message: Box<M> = msg.downcast().unwrap();
             Box::pin(async move { actor.handle(*message).await })
         });
 
         let me = Envelope {
-            data: Box::new(data),
+            mapping: Box::new(data),
+            content,
         };
     }
 }
