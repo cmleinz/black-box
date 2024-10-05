@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use actors::*;
+use tinsel::*;
 
 #[derive(Debug)]
 struct Event;

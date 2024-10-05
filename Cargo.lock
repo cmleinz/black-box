@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "actors"
-version = "0.1.0"
-dependencies = [
- "async-channel",
- "async-executor",
- "futures-lite",
- "futures-util",
- "pin-project-lite",
-]
-
-[[package]]
 name = "async-channel"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -202,6 +191,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "tinsel"
+version = "0.1.0"
+dependencies = [
+ "async-channel",
+ "async-executor",
+ "futures-lite",
+ "futures-util",
+ "pin-project-lite",
 ]
 
 [[package]]
