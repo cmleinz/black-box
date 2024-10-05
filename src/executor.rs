@@ -3,7 +3,7 @@ use std::task::Poll;
 use async_channel::Receiver;
 use futures_util::{future::FusedFuture, Future};
 
-use crate::{actors::Actor, message::Envelope, Address};
+use crate::{message::Envelope, Actor, Address};
 
 const DEFAULT_CAP: usize = 100;
 
@@ -21,14 +21,6 @@ impl<T> FusedReceiver<T> {
     fn recv(&self) -> FusedRecv<'_, T> {
         FusedRecv::new(&self.receiver)
     }
-}
-
-pub struct Executor<A> {
-    actor: A,
-    context: Context,
-    state: State,
-    from_context: FusedReceiver<State>,
-    receiver: FusedReceiver<Envelope<A>>,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -79,16 +71,47 @@ impl<'a, T> FusedFuture for FusedRecv<'a, T> {
     }
 }
 
+/// A cloneable context for the actor.
+///
+/// Currently this fuctions as a means by which to alter the state of the [`Executor`], it is
+/// cloneable and can thus be sent to other threads, runtimes or even other actors to trigger a
+/// shutdown.
 #[derive(Clone, Debug)]
 pub struct Context {
     sender: async_channel::Sender<State>,
 }
 
 impl Context {
-    /// Triggers the end of the executor
+    /// Triggers the end of the executor.
+    ///
+    /// Once triggered, no new messages will be processed and the actor will exit after resolving
+    /// [`Actor::stopping`]
     pub fn shutdown(&self) {
         let _ = self.sender.force_send(State::Shutdown);
     }
+}
+
+/// The event loop for an actor
+///
+/// Handles the receipt of messages, and state management of the actor. The primary method exposed
+/// by the executor is [`Exector::run`], which is used to execute the event loop.
+///
+/// # Example
+///
+/// A common pattern is to spawn the executor onto an async runtime like tokio.
+///
+/// ```ignore
+/// let my_actor = MyActor;
+/// let (executor, addr) = Executor::new(my_actor);
+///
+/// tokio::spawn(executor.run());
+/// ```
+pub struct Executor<A> {
+    actor: A,
+    context: Context,
+    state: State,
+    from_context: FusedReceiver<State>,
+    receiver: FusedReceiver<Envelope<A>>,
 }
 
 impl<A> Executor<A> {
