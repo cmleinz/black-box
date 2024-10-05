@@ -3,13 +3,11 @@
 A minimal, actor framework inspired by actix, and built around the convenience 
 of `async fn` in traits:
 
-```rust
+```rust, ignore
 use tinsel::*;
 
-#[derive(Debug)]
 struct Event;
 
-#[derive(Debug)]
 struct Shutdown;
 
 struct MyActor;
@@ -18,7 +16,7 @@ impl Actor for MyActor {}
 
 impl Handler<Event> for MyActor {
     async fn handle(&mut self, msg: Event, _ctx: &Context) {
-        println!("DEBUG: New event {:?}", msg);
+        println!("DEBUG: New event {}", stringify!(msg));
     }
 }
 
