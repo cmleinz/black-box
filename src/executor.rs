@@ -94,7 +94,7 @@ impl Context {
 /// The event loop for an actor
 ///
 /// Handles the receipt of messages, and state management of the actor. The primary method exposed
-/// by the executor is [`Exector::run`], which is used to execute the event loop.
+/// by the executor is [`Executor::run`], which is used to execute the event loop.
 ///
 /// # Example
 ///
@@ -138,6 +138,8 @@ where
     pub async fn run(mut self) {
         self.actor.starting().await;
 
+        // TODO: In the future we will likely add more states, this is fine for now
+        #[allow(clippy::while_let_loop)]
         loop {
             match self.state {
                 State::Continue => self.continuation().await,

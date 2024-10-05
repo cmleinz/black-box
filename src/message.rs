@@ -28,16 +28,16 @@ impl<A> Envelope<A> {
     {
         let content: Box<dyn Any + Send> = Box::new(message);
         let mapping = Self::constrain(|actor, msg, ctx| {
-            let message: Box<M> = msg.downcast().unwrap();
-            Box::pin(async move { actor.handle(*message, ctx).await })
+            let message = Self::unpack(msg);
+            Box::pin(async move { actor.handle(message, ctx).await })
         });
         let mapping = Box::new(mapping);
 
         Self { content, mapping }
     }
 
-    pub(crate) fn unpack<M: 'static>(self) -> M {
-        let value = self.content.downcast().unwrap();
+    pub(crate) fn unpack<M: 'static>(val: Box<dyn Any>) -> M {
+        let value = val.downcast().unwrap();
         *value
     }
 
