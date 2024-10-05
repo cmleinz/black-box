@@ -60,7 +60,7 @@ where
     pub async fn send<M>(&self, message: M)
     where
         A: Handler<M>,
-        M: 'static + Message + Send,
+        M: Message,
     {
         let env = Envelope::pack(message);
 
@@ -71,7 +71,7 @@ where
     pub fn try_send<M>(&self, message: M)
     where
         A: Handler<M>,
-        M: 'static + Message + Send,
+        M: Message,
     {
         let env = Envelope::pack(message);
 

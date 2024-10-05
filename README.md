@@ -9,12 +9,8 @@ use tinsel::*;
 #[derive(Debug)]
 struct Event;
 
-impl Message for Event {}
-
 #[derive(Debug)]
 struct Shutdown;
-
-impl Message for Shutdown {}
 
 struct MyActor;
 
@@ -54,5 +50,12 @@ async fn main() {
 
 ## About
 
-Tinsel is not--and does not ship with--an executor. This means you are free to
-bring your own.
+Tinsel is not--and does not ship with--an executor. This means you are required
+to bring your own, this means you are free to choose any runtime you would like.
+
+## Message Trait
+
+Tinsel does have a message trait, but currently it is just a supertrait for 
+`'static + Send`. This makes it super easy to define new message types, no need
+to implement a trait on it, just implement the `Handler` for it, and you're good
+to go.

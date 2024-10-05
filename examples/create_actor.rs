@@ -5,12 +5,8 @@ use tinsel::*;
 #[derive(Debug)]
 struct Event;
 
-impl Message for Event {}
-
 #[derive(Debug)]
 struct Shutdown;
-
-impl Message for Shutdown {}
 
 struct MyActor;
 

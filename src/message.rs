@@ -2,7 +2,9 @@ use std::{any::Any, future::Future, pin::Pin};
 
 use crate::{executor::Context, Handler};
 
-pub trait Message {}
+pub trait Message: 'static + Send {}
+
+impl<T: 'static + Send> Message for T {}
 
 type FutType<A> = Box<
     dyn for<'a> FnOnce(
@@ -21,7 +23,7 @@ pub(crate) struct Envelope<A> {
 impl<A> Envelope<A> {
     pub(crate) fn pack<M>(message: M) -> Self
     where
-        M: 'static + Message + Send,
+        M: Message,
         A: 'static + Handler<M> + Send,
     {
         let content: Box<dyn Any + Send> = Box::new(message);
