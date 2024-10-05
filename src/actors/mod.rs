@@ -2,7 +2,10 @@ use std::future::Future;
 
 use async_channel::Sender;
 
-use crate::message::{Envelope, Message};
+use crate::{
+    executor::Context,
+    message::{Envelope, Message},
+};
 
 pub trait Actor {
     fn starting(&mut self) -> impl Future<Output = ()> + Send {
@@ -19,7 +22,7 @@ where
     Self: Actor,
     M: Message,
 {
-    fn handle(&mut self, msg: M) -> impl Future<Output = ()> + Send;
+    fn handle(&mut self, msg: M, ctx: &Context) -> impl Future<Output = ()> + Send;
 }
 
 #[derive(Clone)]
@@ -37,10 +40,11 @@ impl<A: 'static + Actor> Address<A> {
     pub async fn send<M>(&self, message: M)
     where
         A: Handler<M>,
-        M: 'static + Message,
+        M: 'static + Message + Send,
     {
         let env = Envelope::pack(message);
 
-        self.sender.send(env).await;
+        // TODO: Decide what to do here
+        let _ = self.sender.send(env).await;
     }
 }

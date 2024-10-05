@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 async-channel = { version = "2.3.1" }
+futures-util = { version = "0.3.31", no-default-features = true, features = ["async-await-macro"] }
+pin-project-lite = { version = "0.2.14" }
