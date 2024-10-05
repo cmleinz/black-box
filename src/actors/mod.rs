@@ -36,7 +36,10 @@ impl<A> Address<A> {
     }
 }
 
-impl<A: 'static + Actor> Address<A> {
+impl<A> Address<A>
+where
+    A: 'static + Actor + Send,
+{
     pub async fn send<M>(&self, message: M)
     where
         A: Handler<M>,
@@ -46,5 +49,16 @@ impl<A: 'static + Actor> Address<A> {
 
         // TODO: Decide what to do here
         let _ = self.sender.send(env).await;
+    }
+
+    pub fn try_send<M>(&self, message: M)
+    where
+        A: Handler<M>,
+        M: 'static + Message + Send,
+    {
+        let env = Envelope::pack(message);
+
+        // TODO: Decide what to do here
+        let _ = self.sender.try_send(env);
     }
 }

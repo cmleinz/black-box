@@ -2,31 +2,29 @@ use std::{any::Any, future::Future, pin::Pin};
 
 use crate::{executor::Context, Handler};
 
-pub trait Message {
-    type Response;
-}
+pub trait Message {}
 
 type FutType<A> = Box<
     dyn for<'a> FnOnce(
             &'a mut A,
-            Box<dyn Any>,
+            Box<dyn Any + Send>,
             &'a Context,
-        ) -> Pin<Box<dyn Future<Output = ()> + 'a>>
+        ) -> Pin<Box<dyn Future<Output = ()> + 'a + Send>>
         + Send,
 >;
 
 pub(crate) struct Envelope<A> {
-    content: Box<dyn Any>,
+    content: Box<dyn Any + Send>,
     mapping: FutType<A>,
 }
 
 impl<A> Envelope<A> {
     pub(crate) fn pack<M>(message: M) -> Self
     where
-        M: 'static + Message,
-        A: 'static + Handler<M>,
+        M: 'static + Message + Send,
+        A: 'static + Handler<M> + Send,
     {
-        let content: Box<dyn Any> = Box::new(message);
+        let content: Box<dyn Any + Send> = Box::new(message);
         let mapping = Self::constrain(|actor, msg, ctx| {
             let message: Box<M> = msg.downcast().unwrap();
             Box::pin(async move { actor.handle(*message, ctx).await })
@@ -46,9 +44,9 @@ impl<A> Envelope<A> {
         F: 'static
             + for<'a> FnOnce(
                 &'a mut A,
-                Box<dyn Any>,
+                Box<dyn Any + Send>,
                 &'a Context,
-            ) -> Pin<Box<dyn Future<Output = ()> + 'a>>
+            ) -> Pin<Box<dyn Future<Output = ()> + 'a + Send>>
             + Send,
     {
         Box::new(fun)

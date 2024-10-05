@@ -86,7 +86,7 @@ pub struct Context {
 
 impl Context {
     /// Triggers the end of the executor
-    pub fn shutdown(&mut self) {
+    pub fn shutdown(&self) {
         let _ = self.sender.force_send(State::Shutdown);
     }
 }
