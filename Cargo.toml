@@ -9,7 +9,7 @@ rust-version = "1.75"
 
 [dependencies]
 async-channel = { version = "2.3.1" }
-futures-util = { version = "0.3.31", no-default-features = true, features = ["async-await-macro"] }
+futures-util = { version = "0.3.31" }
 pin-project-lite = { version = "0.2.14" }
 
 [dev-dependencies]
