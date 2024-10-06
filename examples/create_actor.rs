@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use tinsel::*;
+use black_box::*;
 
 #[derive(Debug)]
 struct Event;

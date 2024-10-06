@@ -40,6 +40,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "black-box"
+version = "0.0.1"
+dependencies = [
+ "async-channel",
+ "async-executor",
+ "futures-lite",
+ "futures-util",
+ "pin-project-lite",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -191,17 +202,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "tinsel"
-version = "0.1.0"
-dependencies = [
- "async-channel",
- "async-executor",
- "futures-lite",
- "futures-util",
- "pin-project-lite",
 ]
 
 [[package]]

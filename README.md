@@ -1,10 +1,14 @@
-# Tinsel
+# Black-Box
 
-A minimal, actor framework inspired by actix, and built around the convenience 
-of `async fn` in traits:
+A [minimal, stage](https://en.wikipedia.org/wiki/Black_box_theater) for actors.
+
+API design is inspired by actix, but built around the convenience of `async fn`
+in traits.
+
+To get started just define an Actor and implement some message handlers:
 
 ```rust, ignore
-use tinsel::*;
+use black_box::*;
 
 struct Event;
 
@@ -48,12 +52,12 @@ async fn main() {
 
 ## About
 
-Tinsel is not--and does not ship with--an executor. This means you are required
+Black-box is not--and does not ship with--an executor. This means you are required
 to bring your own, this means you are free to choose any runtime you would like.
 
 ## Message Trait
 
-Tinsel does have a message trait, but currently it is just a supertrait for 
+Black-box does have a message trait, but currently it is just a supertrait for 
 `'static + Send`. This makes it super easy to define new message types, no need
 to implement a trait on it, just implement the `Handler` for it, and you're good
 to go.
