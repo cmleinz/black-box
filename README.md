@@ -50,10 +50,15 @@ async fn main() {
 }
 ```
 
-## About
+## Runtime
 
-Black-box is not--and does not ship with--an executor. This means you are required
-to bring your own, this means you are free to choose any runtime you would like.
+Black-box deliberatly does not ship with a runtime, instead it aims to work with
+the users runtime of choice.
+
+## Send Bounds
+
+While it likely won't always be the case, currently the futures return by 
+`Handler::handle` must be `Send`
 
 ## Message Trait
 
