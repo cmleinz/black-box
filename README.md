@@ -61,3 +61,7 @@ Black-box does have a message trait, but currently it is just a supertrait for
 `'static + Send`. This makes it super easy to define new message types, no need
 to implement a trait on it, just implement the `Handler` for it, and you're good
 to go.
+
+In the future, this might change to accomodate things like message responses, 
+however for now the same things can be accomplished by embedding a oneshot
+channel in the message type to handle the response.
