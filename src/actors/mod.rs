@@ -38,7 +38,7 @@ where
 /// A cloneable address which can be used to send messages to the associated [`Actor`]
 ///
 /// This is a cheaply cloneable type and can be used to send an actor address to other actors, other
-/// runtimes ext.
+/// runtimes, etc.
 #[derive(Clone)]
 pub struct Address<A> {
     sender: Sender<Envelope<A>>,

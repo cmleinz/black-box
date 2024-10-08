@@ -1,5 +1,8 @@
 # Black-Box
 
+[![Crates.io](https://img.shields.io/crates/v/black-box.svg)](https://crates.io/crates/black-box)
+[![Documentation](https://docs.rs/black-box/badge.svg)](https://docs.rs/black-box/)
+
 A [minimal, stage](https://en.wikipedia.org/wiki/Black_box_theater) for actors.
 
 API design is inspired by actix, but built around the convenience of `async fn`
@@ -16,6 +19,7 @@ struct Shutdown;
 
 struct MyActor;
 
+// All methods are provided, can be overridden for more control
 impl Actor for MyActor {}
 
 impl Handler<Event> for MyActor {
