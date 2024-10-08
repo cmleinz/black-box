@@ -23,13 +23,13 @@ struct MyActor;
 impl Actor for MyActor {}
 
 impl Handler<Event> for MyActor {
-    async fn handle(&mut self, msg: Event, _ctx: &Context) {
+    async fn handle(&mut self, msg: Event, _ctx: &Context<Self>) {
         println!("DEBUG: New event {}", stringify!(msg));
     }
 }
 
 impl Handler<Shutdown> for MyActor {
-    async fn handle(&mut self, _msg: Shutdown, ctx: &Context) {
+    async fn handle(&mut self, _msg: Shutdown, ctx: &Context<Self>) {
         println!("INFO: Shutting down");
         ctx.shutdown();
         tokio::time::sleep(std::time::Duration::from_millis(200)).await;

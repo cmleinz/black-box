@@ -16,18 +16,24 @@ enum State {
 /// Currently this fuctions as a means by which to alter the state of the [`Executor`], it is
 /// cloneable and can thus be sent to other threads, runtimes or even other actors to trigger a
 /// shutdown.
-#[derive(Clone, Debug)]
-pub struct Context {
+#[derive(Clone)]
+pub struct Context<A> {
     sender: async_channel::Sender<State>,
+    address: Address<A>,
 }
 
-impl Context {
+impl<A> Context<A> {
     /// Triggers the end of the executor.
     ///
     /// Once triggered, no new messages will be processed and the actor will exit after resolving
     /// [`Actor::stopping`]
     pub fn shutdown(&self) {
         let _ = self.sender.force_send(State::Shutdown);
+    }
+
+    /// Retrieve the address for the executor's actor
+    pub fn address(&self) -> &Address<A> {
+        &self.address
     }
 }
 
@@ -48,7 +54,7 @@ impl Context {
 /// ```
 pub struct Executor<A> {
     actor: A,
-    context: Context,
+    context: Context<A>,
     state: State,
     from_context: Receiver<State>,
     receiver: Receiver<Envelope<A>>,
@@ -57,15 +63,18 @@ pub struct Executor<A> {
 impl<A> Executor<A> {
     pub fn new(actor: A) -> (Self, Address<A>) {
         let (sender, receiver) = async_channel::bounded(DEFAULT_CAP);
+        let address = Address::new(sender);
         let (state_tx, state_rx) = async_channel::unbounded();
         let me = Self {
             actor,
             receiver,
-            context: Context { sender: state_tx },
+            context: Context {
+                sender: state_tx,
+                address: address.clone(),
+            },
             from_context: state_rx,
             state: Default::default(),
         };
-        let address = Address::new(sender);
 
         (me, address)
     }
@@ -81,7 +90,7 @@ where
     A: Actor,
 {
     pub async fn run(mut self) {
-        self.actor.starting().await;
+        self.actor.starting(&self.context).await;
 
         // TODO: In the future we will likely add more states, this is fine for now
         #[allow(clippy::while_let_loop)]
@@ -92,7 +101,7 @@ where
             }
         }
 
-        self.actor.stopping().await;
+        self.actor.stopping(&self.context).await;
     }
 
     async fn continuation(&mut self) {

@@ -10,7 +10,7 @@ type FutType<A> = Box<
     dyn for<'a> FnOnce(
             &'a mut A,
             Box<dyn Any + Send>,
-            &'a Context,
+            &'a Context<A>,
         ) -> Pin<Box<dyn Future<Output = ()> + 'a + Send>>
         + Send,
 >;
@@ -47,14 +47,14 @@ impl<A> Envelope<A> {
             + for<'a> FnOnce(
                 &'a mut A,
                 Box<dyn Any + Send>,
-                &'a Context,
+                &'a Context<A>,
             ) -> Pin<Box<dyn Future<Output = ()> + 'a + Send>>
             + Send,
     {
         Box::new(fun)
     }
 
-    pub(crate) async fn resolve(self, actor: &mut A, ctx: &Context) {
+    pub(crate) async fn resolve(self, actor: &mut A, ctx: &Context<A>) {
         let fut = (self.mapping)(actor, self.content, ctx);
         fut.await;
     }

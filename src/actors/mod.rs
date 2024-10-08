@@ -12,12 +12,12 @@ use crate::{
 /// Actors are spawned in an [`Executor`](crate::Executor), and run in the executor's event loop.
 /// When new messages are received by the executor, the appropriate handler [`Handler`] is invoked,
 /// allowing the actor to take any necessary action, including mutating it's internal state.
-pub trait Actor {
-    fn starting(&mut self) -> impl Future<Output = ()> + Send {
+pub trait Actor: Sized {
+    fn starting(&mut self, _ctx: &Context<Self>) -> impl Future<Output = ()> + Send {
         std::future::ready(())
     }
 
-    fn stopping(&mut self) -> impl Future<Output = ()> + Send {
+    fn stopping(&mut self, _ctx: &Context<Self>) -> impl Future<Output = ()> + Send {
         std::future::ready(())
     }
 }
@@ -32,7 +32,7 @@ where
     M: Message,
 {
     /// Asynchronously act on the message, with mutable access to self
-    fn handle(&mut self, msg: M, ctx: &Context) -> impl Future<Output = ()> + Send;
+    fn handle(&mut self, msg: M, ctx: &Context<Self>) -> impl Future<Output = ()> + Send;
 }
 
 /// A cloneable address which can be used to send messages to the associated [`Actor`]
