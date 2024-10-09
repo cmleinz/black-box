@@ -32,6 +32,8 @@ impl<A> Context<A> {
     }
 
     /// Retrieve the address for the executor's actor
+    ///
+    /// This is useful when an actor wants to emit messages to itself.
     pub fn address(&self) -> &Address<A> {
         &self.address
     }
