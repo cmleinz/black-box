@@ -10,7 +10,7 @@ in traits.
 
 To get started just define an Actor and implement some message handlers:
 
-```rust, ignore
+```rust, no_run
 use black_box::*;
 
 struct Event;

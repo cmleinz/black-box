@@ -15,3 +15,4 @@ futures-lite = { version = "2.3.0"}
 
 [dev-dependencies]
 async-executor = { version = "1.13.1" }
+tokio = { version = "1.40.0", features = ["full"] }
