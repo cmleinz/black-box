@@ -110,7 +110,7 @@ where
         let fut1 = async { self.from_context.recv().await.map(|val| Race::State(val)) };
         let fut2 = async { self.receiver.recv().await.map(|val| Race::Envelope(val)) };
 
-        let result = futures_lite::future::race(fut1, fut2).await;
+        let result = crate::futures::race_biased(fut1, fut2).await;
 
         match result {
             Ok(Race::State(state)) => self.state = state,

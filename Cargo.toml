@@ -11,7 +11,7 @@ rust-version = "1.75"
 
 [dependencies]
 async-channel = { version = "2.3.1" }
-futures-lite = { version = "2.3.0"}
+pin-project-lite = { version = "0.2.14" }
 
 [dev-dependencies]
 async-executor = { version = "1.13.1" }

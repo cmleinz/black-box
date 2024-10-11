@@ -81,7 +81,7 @@ version = "0.2.0"
 dependencies = [
  "async-channel",
  "async-executor",
- "futures-lite",
+ "pin-project-lite",
  "tokio",
 ]
 

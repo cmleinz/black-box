@@ -2,6 +2,7 @@
 
 mod actors;
 mod executor;
+mod futures;
 pub(crate) mod message;
 
 pub use self::{
