@@ -38,3 +38,43 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn race_biased_on_ready() {
+        let first = std::future::ready(true);
+        let second = std::future::ready(false);
+        let result = race_biased(first, second).await;
+        assert!(result);
+    }
+
+    #[tokio::test]
+    async fn race_biased_on_not_ready() {
+        let first = async {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            false
+        };
+        let second = async {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            true
+        };
+        let result = race_biased(first, second).await;
+        assert!(result);
+    }
+
+    #[tokio::test]
+    async fn race_biased_on_one_ready() {
+        let first = async {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            false
+        };
+        let second = std::future::ready(true);
+        let result = race_biased(first, second).await;
+        assert!(result);
+    }
+}
