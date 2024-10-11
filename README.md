@@ -7,8 +7,8 @@ A [minimal, stage](https://en.wikipedia.org/wiki/Black_box_theater) for actors.
 
 ## About
 
-Black-box's API design is inspired by actix, but built is built to be as minimal
-as possible, and to integrate with the recently stabalized `async fn` in traits.
+Black-box's API design is inspired by actix, but is built to be as minimal as
+possible, and to integrate with the recently stabalized `async fn` in traits.
 
 To get started just define an Actor and implement some message handlers:
 
@@ -36,12 +36,13 @@ impl Handler<Shutdown> for MyActor {
         println!("INFO: Shutting down");
         // shutdown the actor from within the handler
         ctx.shutdown(); 
-		// await futures inline thanks to async fn 
+        // await futures inline thanks to async fn 
         tokio::time::sleep(std::time::Duration::from_millis(200)).await;
         println!("INFO: Shut down");
     }
 }
 
+// Spawn the actor on a runtime of your choosing
 #[tokio::main]
 async fn main() {
     let actor = MyActor;
