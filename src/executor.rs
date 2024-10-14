@@ -48,7 +48,10 @@ impl<A> Context<A> {
 ///
 /// A common pattern is to spawn the executor onto an async runtime like tokio.
 ///
-/// ```ignore
+/// ```no_run
+/// # use black_box::*;
+/// # struct MyActor;
+/// # impl Actor for MyActor {}
 /// let my_actor = MyActor;
 /// let (executor, addr) = Executor::new(my_actor);
 ///
