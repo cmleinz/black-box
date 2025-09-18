@@ -43,6 +43,13 @@ pub struct Address<A> {
     sender: Sender<Envelope<A>>,
 }
 
+// SAFETY: The address is a queue abstraction for *messages* sent to the actor. Even if the actor
+// itself is not Send/Sync the address should be. The Message trait itself already requires that
+// the implementer be Send
+unsafe impl<A> std::marker::Send for Address<A> {}
+// SAFETY: As above but for Sync
+unsafe impl<A> std::marker::Sync for Address<A> {}
+
 impl<A> Clone for Address<A> {
     fn clone(&self) -> Self {
         Self {
