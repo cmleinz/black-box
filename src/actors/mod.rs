@@ -49,6 +49,7 @@ pub struct Address<A> {
 unsafe impl<A> std::marker::Send for Address<A> {}
 // SAFETY: As above but for Sync
 unsafe impl<A> std::marker::Sync for Address<A> {}
+impl<A> std::marker::Unpin for Address<A> {}
 
 impl<A> Clone for Address<A> {
     fn clone(&self) -> Self {
