@@ -109,7 +109,7 @@ high concurrency, you will likely want to either
 
 1. Spawn many actors to handle the work
 1. Offload the bulk of the asynchronous work to a task spawned onto some
-executor.
+   executor.
 
 ### Allocations
 
@@ -118,7 +118,7 @@ would likely either:
 
 1. Create many channels over which to send different message types
 1. Collect all the message types for a given actor into an enum and descructure
-the enum, and pass it down to functions
+   the enum, and pass it down to functions
 
 To get around these rough spots, black-box conducts type-erasure via 
 `Box<dyn Any>`, when the message is sent, then reconstructs the message type 
