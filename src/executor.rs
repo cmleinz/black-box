@@ -2,7 +2,7 @@ use std::future::Future;
 
 use async_channel::Receiver;
 
-use crate::{Actor, Address, WeakAddress, error::AddressError, message::Envelope};
+use crate::{error::AddressError, message::Envelope, Actor, Address, WeakAddress};
 
 const DEFAULT_CAP: usize = 100;
 
