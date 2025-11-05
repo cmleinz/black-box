@@ -16,7 +16,7 @@ enum State {
 /// Currently this fuctions as a means by which to alter the state of the [`Executor`], it is
 /// cloneable and can thus be sent to other threads, runtimes or even other actors to trigger a
 /// shutdown.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Context<A> {
     sender: async_channel::Sender<State>,
     address: Address<A>,
@@ -57,6 +57,7 @@ impl<A> Context<A> {
 ///
 /// tokio::spawn(executor.run());
 /// ```
+#[derive(Debug)]
 pub struct Executor<A> {
     actor: A,
     context: Context<A>,

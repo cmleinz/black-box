@@ -39,6 +39,7 @@ where
 ///
 /// This is a cheaply cloneable type and can be used to send an actor address to other actors, other
 /// runtimes, etc.
+#[derive(Debug)]
 pub struct Address<A> {
     sender: Sender<Envelope<A>>,
 }
