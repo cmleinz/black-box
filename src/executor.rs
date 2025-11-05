@@ -1,6 +1,6 @@
 use async_channel::Receiver;
 
-use crate::{message::Envelope, Actor, Address};
+use crate::{Actor, Address, WeakAddress, message::Envelope};
 
 const DEFAULT_CAP: usize = 100;
 
@@ -19,7 +19,7 @@ enum State {
 #[derive(Debug, Clone)]
 pub struct Context<A> {
     sender: async_channel::Sender<State>,
-    address: Address<A>,
+    address: WeakAddress<A>,
 }
 
 impl<A> Context<A> {
@@ -34,7 +34,7 @@ impl<A> Context<A> {
     /// Retrieve the address for the executor's actor
     ///
     /// This is useful when an actor wants to emit messages to itself.
-    pub fn address(&self) -> &Address<A> {
+    pub fn address(&self) -> &WeakAddress<A> {
         &self.address
     }
 }
@@ -76,7 +76,7 @@ impl<A> Executor<A> {
             receiver,
             context: Context {
                 sender: state_tx,
-                address: address.clone(),
+                address: address.downgrade(),
             },
             from_context: state_rx,
             state: Default::default(),
