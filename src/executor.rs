@@ -1,6 +1,8 @@
+use std::future::Future;
+
 use async_channel::Receiver;
 
-use crate::{Actor, Address, WeakAddress, message::Envelope};
+use crate::{Actor, Address, WeakAddress, error::AddressError, message::Envelope};
 
 const DEFAULT_CAP: usize = 100;
 
@@ -9,6 +11,7 @@ enum State {
     #[default]
     Continue,
     Shutdown,
+    SendersClosed,
 }
 
 /// A cloneable context for the actor.
@@ -53,9 +56,9 @@ impl<A> Context<A> {
 /// # struct MyActor;
 /// # impl Actor for MyActor {}
 /// let my_actor = MyActor;
-/// let (executor, addr) = Executor::new(my_actor);
+/// let (mut executor, addr) = Executor::new(my_actor);
 ///
-/// tokio::spawn(executor.run());
+/// tokio::spawn(async move { executor.run().await });
 /// ```
 #[derive(Debug)]
 pub struct Executor<A> {
@@ -95,19 +98,63 @@ impl<A> Executor<A>
 where
     A: Actor,
 {
-    pub async fn run(mut self) {
+    /// Runs the executor, returns `Ok(())` if the actor invoked shutdown manually, and `Err(_)`
+    /// if all addresses to the actor have been dropped
+    ///
+    /// This function should be likely be handed off to the spawn function of your async runtime
+    /// of choice.
+    pub async fn run(&mut self) -> Result<(), AddressError> {
+        self.reset_state();
         self.actor.starting(&self.context).await;
 
         // TODO: In the future we will likely add more states, this is fine for now
         #[allow(clippy::while_let_loop)]
-        loop {
+        let result = loop {
             match self.state {
                 State::Continue => self.continuation().await,
-                State::Shutdown => break,
+                State::Shutdown => break Ok(()),
+                State::SendersClosed => break Err(AddressError::Closed),
             }
-        }
+        };
 
         self.actor.stopping(&self.context).await;
+
+        result
+    }
+
+    /// Runs the executor, halting execution early if the provided future polls ready.
+    ///
+    /// Returns `Ok(true)` if the provided future resolved, and `Ok(false)` if the the actor was
+    /// shut down
+    ///
+    /// This can be used in conjunction with [`Self::actor_mut`] to periodically alter the state of
+    /// the actor.
+    pub async fn run_against<F>(&mut self, fut: F) -> Result<bool, AddressError>
+    where
+        F: Future<Output = ()>,
+    {
+        self.reset_state();
+        let fut1 = async { self.run().await.map(|_| false) };
+        let fut2 = async {
+            fut.await;
+            Ok(true)
+        };
+
+        crate::futures::race_biased(fut1, fut2).await
+    }
+
+    /// Resets the actor's state
+    fn reset_state(&mut self) {
+        while self.from_context.try_recv().is_ok() {}
+        self.state = State::Continue;
+    }
+
+    pub fn actor_ref(&self) -> &A {
+        &self.actor
+    }
+
+    pub fn actor_mut(&mut self) -> &mut A {
+        &mut self.actor
     }
 
     async fn continuation(&mut self) {
@@ -120,8 +167,26 @@ where
             Ok(Race::State(state)) => self.state = state,
             Ok(Race::Envelope(env)) => env.resolve(&mut self.actor, &self.context).await,
             Err(_) => {
-                self.state = State::Shutdown;
+                self.state = State::SendersClosed;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub struct Foo;
+
+    impl Actor for Foo {}
+
+    #[tokio::test]
+    async fn dropped_address_exits() {
+        let (mut actor, addr) = Executor::new(Foo);
+        let handle = tokio::spawn(async move { actor.run().await });
+        assert!(!handle.is_finished());
+        drop(addr);
+        assert!(handle.await.unwrap().is_err())
     }
 }

@@ -46,7 +46,7 @@ impl Handler<Shutdown> for MyActor {
 #[tokio::main]
 async fn main() {
     let actor = MyActor;
-    let (executor, address) = Executor::new(actor);
+    let (mut executor, address) = Executor::new(actor);
 
     tokio::spawn(async move {
         for _ in 0..5 {
