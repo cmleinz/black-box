@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use async_channel::Sender;
+use async_channel::{Sender, WeakSender};
 
 use crate::{
     executor::Context,
@@ -64,6 +64,11 @@ impl<A> Address<A> {
     pub(crate) fn new(sender: Sender<Envelope<A>>) -> Self {
         Self { sender }
     }
+
+    pub fn downgrade(&self) -> WeakAddress<A> {
+        let sender = self.sender.downgrade();
+        WeakAddress::new(sender)
+    }
 }
 
 impl<A> Address<A>
@@ -95,3 +100,39 @@ where
         let _ = self.sender.try_send(env);
     }
 }
+
+/// A cloneable address which can be used to send messages to the associated [`Actor`]
+///
+/// This is a cheaply cloneable type and can be used to send an actor address to other actors, other
+/// runtimes, etc.
+#[derive(Debug)]
+pub struct WeakAddress<A> {
+    sender: WeakSender<Envelope<A>>,
+}
+
+impl<A> Clone for WeakAddress<A> {
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+        }
+    }
+}
+
+impl<A> WeakAddress<A> {
+    pub(crate) fn new(sender: WeakSender<Envelope<A>>) -> Self {
+        Self { sender }
+    }
+
+    pub fn upgrade(&self) -> Option<Address<A>> {
+        let sender = self.sender.upgrade()?;
+        Some(Address::new(sender))
+    }
+}
+
+// SAFETY: The address is a queue abstraction for *messages* sent to the actor. Even if the actor
+// itself is not Send/Sync the address should be. The Message trait itself already requires that
+// the implementer be Send
+unsafe impl<A> std::marker::Send for WeakAddress<A> {}
+// SAFETY: As above but for Sync
+unsafe impl<A> std::marker::Sync for WeakAddress<A> {}
+impl<A> std::marker::Unpin for WeakAddress<A> {}

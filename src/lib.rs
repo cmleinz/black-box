@@ -6,6 +6,6 @@ mod futures;
 pub(crate) mod message;
 
 pub use self::{
-    actors::{Actor, Address, Handler},
+    actors::{Actor, Address, Handler, WeakAddress},
     executor::{Context, Executor},
 };
