@@ -25,6 +25,19 @@ impl<T> Overseer<T> {
         Self::default()
     }
 
+    pub fn update_resource<R>(&mut self, value: R) -> Option<R>
+    where
+        R: Any + Send + Sync,
+    {
+        let was = self.map.insert(value);
+        let now: &dyn Any = self.map.get::<R>().unwrap();
+        let type_id = TypeId::of::<R>();
+
+        self.factory_set.on_update(&self.map, &type_id, now);
+
+        was
+    }
+
     pub fn insert_resource<R>(&mut self, value: R) -> Option<R>
     where
         R: Any + Send + Sync,

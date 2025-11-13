@@ -1,5 +1,5 @@
 use crate::{Factory, ResourcePool};
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 
 pub(crate) struct FactoryHolder<T> {
     factory: Box<dyn Factory<Handle = T> + Send + Sync>,
@@ -29,6 +29,12 @@ impl<T> FactorySet<T> {
             autobuild,
             built: false,
         });
+    }
+
+    pub(crate) fn on_update(&mut self, pool: &ResourcePool, type_id: &TypeId, value: &dyn Any) {
+        for holder in &mut self.factories {
+            holder.factory.on_update(pool, type_id, value);
+        }
     }
 
     pub(crate) fn on_add(&mut self, pool: &ResourcePool, type_id: &TypeId) -> Vec<T> {
