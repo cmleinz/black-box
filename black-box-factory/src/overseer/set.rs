@@ -1,3 +1,5 @@
+use std::any::TypeId;
+
 use crate::{Action, Factory, Handle, ResourcePool};
 
 pub(super) struct FactoryHolder<T> {
@@ -56,16 +58,16 @@ impl<T> FactorySet<T>
 where
     T: Handle,
 {
-    pub(super) fn on_update(&mut self, pool: &ResourcePool) {
+    pub(super) fn on_update(&mut self, pool: &ResourcePool, id: &TypeId) {
         for holder in &mut self.factories {
-            let action = holder.factory.on_update(pool);
+            let action = holder.factory.on_update(pool, id);
             holder.handle_action(action, pool);
         }
     }
 
-    pub(super) fn on_add(&mut self, pool: &ResourcePool) {
+    pub(super) fn on_add(&mut self, pool: &ResourcePool, id: &TypeId) {
         for holder in &mut self.factories {
-            holder.factory.on_insert(pool);
+            holder.factory.on_insert(pool, id);
             if holder.autobuild && holder.handle.is_none() {
                 if let Some(handle) = holder.factory.build(pool) {
                     let action = holder.factory.on_build(pool, &handle);
@@ -76,9 +78,9 @@ where
         }
     }
 
-    pub(super) fn on_remove(&mut self, pool: &ResourcePool) {
+    pub(super) fn on_remove(&mut self, pool: &ResourcePool, id: &TypeId) {
         for holder in &mut self.factories {
-            let action = holder.factory.on_remove(pool);
+            let action = holder.factory.on_remove(pool, id);
             holder.handle_action(action, pool);
         }
     }

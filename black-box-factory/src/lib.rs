@@ -1,6 +1,8 @@
 pub mod overseer;
 mod resource;
 
+use std::any::TypeId;
+
 pub use overseer::Overseer;
 pub use resource::ResourcePool;
 
@@ -49,15 +51,15 @@ pub trait Factory {
         Action::Noop
     }
 
-    fn on_insert(&mut self, _pool: &ResourcePool) -> Action {
+    fn on_insert(&mut self, _pool: &ResourcePool, _type_id: &TypeId) -> Action {
         Action::Noop
     }
 
-    fn on_update(&mut self, _pool: &ResourcePool) -> Action {
+    fn on_update(&mut self, _pool: &ResourcePool, _type_id: &TypeId) -> Action {
         Action::Noop
     }
 
-    fn on_remove(&mut self, _pool: &ResourcePool) -> Action {
+    fn on_remove(&mut self, _pool: &ResourcePool, _type_id: &TypeId) -> Action {
         Action::Noop
     }
 }

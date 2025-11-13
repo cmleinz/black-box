@@ -1,5 +1,5 @@
 use black_box::Actor;
-use std::any::Any;
+use std::any::{Any, TypeId};
 
 use crate::{Factory, Handle};
 
@@ -61,8 +61,9 @@ where
         R: Any + Send + Sync,
     {
         let output = self.map.insert(value);
+        let id = TypeId::of::<R>();
 
-        self.factory_set.on_add(&self.map);
+        self.factory_set.on_add(&self.map, &id);
 
         output
     }
@@ -73,8 +74,9 @@ where
     {
         let was = self.map.get_mut::<R>()?;
         let was = std::mem::replace(was, value);
+        let id = TypeId::of::<R>();
 
-        self.factory_set.on_update(&self.map);
+        self.factory_set.on_update(&self.map, &id);
 
         Some(was)
     }
@@ -86,8 +88,9 @@ where
         if !self.map.contains::<R>() {
             return None;
         }
+        let id = TypeId::of::<R>();
 
-        self.factory_set.on_remove(&self.map);
+        self.factory_set.on_remove(&self.map, &id);
 
         self.map.remove::<R>()
     }
