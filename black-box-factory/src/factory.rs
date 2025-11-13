@@ -1,17 +1,20 @@
 use std::any::{Any, TypeId};
 
+use crate::factory_set::FactorySet;
 use crate::Factory;
 
 pub struct Overseer<T> {
     map: crate::ResourcePool,
-    factories: Vec<Box<dyn Factory<Handle = T> + Send + Sync>>,
+    factory_set: FactorySet<T>,
+    handles: Vec<T>,
 }
 
 impl<T> Default for Overseer<T> {
     fn default() -> Self {
         Self {
             map: Default::default(),
-            factories: Default::default(),
+            factory_set: Default::default(),
+            handles: Default::default(),
         }
     }
 }
@@ -29,19 +32,24 @@ impl<T> Overseer<T> {
         let type_id = TypeId::of::<R>();
         let output = self.map.insert(value);
 
-        for factory in &mut self.factories {
-            factory.on_add(&self.map, &type_id);
-        }
+        let mut new_handles = self.factory_set.on_add(&self.map, &type_id);
+        self.handles.append(&mut new_handles);
 
         output
     }
 
-    pub fn insert_factory<F>(&mut self, factory: F)
+    pub fn insert_factory_manual<F>(&mut self, factory: F)
     where
         F: Factory<Handle = T> + Send + Sync + 'static,
     {
-        let factory = Box::new(factory);
-        self.factories.push(factory);
+        self.factory_set.insert(factory, false);
+    }
+
+    pub fn insert_factory_autobuild<F>(&mut self, factory: F)
+    where
+        F: Factory<Handle = T> + Send + Sync + 'static,
+    {
+        self.factory_set.insert(factory, true);
     }
 
     pub fn remove_resource<R>(&mut self) -> Option<R>
@@ -53,10 +61,12 @@ impl<T> Overseer<T> {
         }
 
         let type_id = TypeId::of::<R>();
-        for factory in &mut self.factories {
-            factory.on_remove(&self.map, &type_id)
-        }
+        self.factory_set.on_remove(&self.map, &type_id);
 
         self.map.remove::<R>()
+    }
+
+    pub fn handles(&self) -> &[T] {
+        &self.handles
     }
 }

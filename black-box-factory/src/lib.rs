@@ -1,4 +1,5 @@
 mod factory;
+mod factory_set;
 mod resource;
 
 use std::any::TypeId;
