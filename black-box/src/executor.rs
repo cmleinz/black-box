@@ -1,8 +1,12 @@
 use std::future::Future;
 
-use async_channel::Receiver;
+use async_channel::{Receiver, Sender};
 
-use crate::{error::AddressError, message::Envelope, Actor, Address, WeakAddress};
+use crate::{
+    Actor, Address, WeakAddress,
+    error::{ActorError, AddressError},
+    message::Envelope,
+};
 
 const DEFAULT_CAP: usize = 100;
 
@@ -69,6 +73,18 @@ pub struct Executor<A> {
     receiver: Receiver<Envelope<A>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ShutdownHandle(Sender<State>);
+
+impl ShutdownHandle {
+    pub fn shutdown(&self) -> Result<(), ActorError> {
+        self.0
+            .force_send(State::Shutdown)
+            .map(|_| ())
+            .map_err(|_| ActorError::Shutdown)
+    }
+}
+
 impl<A> Executor<A> {
     pub fn new(actor: A) -> (Self, Address<A>) {
         let (sender, receiver) = async_channel::bounded(DEFAULT_CAP);
@@ -86,6 +102,12 @@ impl<A> Executor<A> {
         };
 
         (me, address)
+    }
+
+    /// Construct a new shutdown handle to be able to remotely shutdown the actor
+    pub fn shutdown_handle(&self) -> ShutdownHandle {
+        let sender = self.context.sender.clone();
+        ShutdownHandle(sender)
     }
 }
 
