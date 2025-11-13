@@ -1,9 +1,12 @@
 use black_box::{Actor, Handler};
-use std::any::{Any, TypeId};
+use std::any::Any;
 use std::marker::PhantomData;
 
 use crate::Factory;
-use crate::factory_set::FactorySet;
+
+mod set;
+
+use set::FactorySet;
 
 pub struct RemoveResource<U>(PhantomData<U>);
 
@@ -101,10 +104,8 @@ impl<T> Overseer<T> {
         R: Any + Send + Sync,
     {
         let was = self.map.insert(value);
-        let now: &dyn Any = self.map.get::<R>().unwrap();
-        let type_id = TypeId::of::<R>();
 
-        self.factory_set.on_update(&self.map, &type_id, now);
+        self.factory_set.on_update(&self.map);
 
         was
     }
@@ -113,10 +114,9 @@ impl<T> Overseer<T> {
     where
         R: Any + Send + Sync,
     {
-        let type_id = TypeId::of::<R>();
         let output = self.map.insert(value);
 
-        let mut new_handles = self.factory_set.on_add(&self.map, &type_id);
+        let mut new_handles = self.factory_set.on_add(&self.map);
         self.handles.append(&mut new_handles);
 
         output
@@ -144,8 +144,7 @@ impl<T> Overseer<T> {
             return None;
         }
 
-        let type_id = TypeId::of::<R>();
-        self.factory_set.on_remove(&self.map, &type_id);
+        self.factory_set.on_remove(&self.map);
 
         self.map.remove::<R>()
     }
