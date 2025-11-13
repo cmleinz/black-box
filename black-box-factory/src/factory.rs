@@ -25,6 +25,13 @@ impl<T> Overseer<T> {
         Self::default()
     }
 
+    pub fn contains_resource<R>(&self) -> bool
+    where
+        R: Any,
+    {
+        self.map.contains::<R>()
+    }
+
     pub fn update_resource<R>(&mut self, value: R) -> Option<R>
     where
         R: Any + Send + Sync,
