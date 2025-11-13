@@ -56,6 +56,17 @@ impl<T> Overseer<T>
 where
     T: Handle,
 {
+    pub fn insert_resource<R>(&mut self, value: R) -> Option<R>
+    where
+        R: Any + Send + Sync,
+    {
+        let output = self.map.insert(value);
+
+        self.factory_set.on_add(&self.map);
+
+        output
+    }
+
     pub fn update_resource<R>(&mut self, value: R) -> Option<R>
     where
         R: Any + Send + Sync,
@@ -66,17 +77,6 @@ where
         self.factory_set.on_update(&self.map);
 
         Some(was)
-    }
-
-    pub fn insert_resource<R>(&mut self, value: R) -> Option<R>
-    where
-        R: Any + Send + Sync,
-    {
-        let output = self.map.insert(value);
-
-        self.factory_set.on_add(&self.map);
-
-        output
     }
 
     pub fn remove_resource<R>(&mut self) -> Option<R>

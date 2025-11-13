@@ -18,6 +18,12 @@ where
                     handle.shutdown(pool);
                 }
             }
+            Action::Restart => {
+                if let Some(mut handle) = self.handle.take() {
+                    handle.shutdown(pool);
+                }
+                self.handle = self.factory.build(pool);
+            }
         }
     }
 }
@@ -59,7 +65,7 @@ where
 
     pub(super) fn on_add(&mut self, pool: &ResourcePool) {
         for holder in &mut self.factories {
-            holder.factory.on_add(pool);
+            holder.factory.on_insert(pool);
             if holder.autobuild && holder.handle.is_none() {
                 if let Some(handle) = holder.factory.build(pool) {
                     let action = holder.factory.on_build(pool, &handle);

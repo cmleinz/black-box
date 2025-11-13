@@ -7,64 +7,97 @@ use crate::Handle;
 use super::Overseer;
 
 /// Adds a new resource to the Overseer
-pub struct InsertResource<U>(U);
+///
+/// If the resource already exists, do nothing
+pub struct InsertResource<R>(R);
 
-impl<U> InsertResource<U> {
-    pub fn new(value: U) -> Self {
+impl<R> InsertResource<R> {
+    pub fn new(value: R) -> Self {
         Self(value)
     }
 }
 
-impl<T, U> Handler<InsertResource<U>> for Overseer<T>
+impl<T, R> Handler<InsertResource<R>> for Overseer<T>
 where
-    U: Any + Send + Sync,
+    R: Any + Send + Sync,
     T: Handle + Send,
 {
-    async fn handle(&mut self, msg: InsertResource<U>, _ctx: &black_box::Context<Self>) {
-        self.insert_resource(msg.0);
+    async fn handle(&mut self, msg: InsertResource<R>, _ctx: &black_box::Context<Self>) {
+        if !self.contains_resource::<R>() {
+            self.insert_resource(msg.0);
+        }
     }
 }
 
 /// Removes a resource
-pub struct RemoveResource<U>(PhantomData<U>);
+pub struct RemoveResource<R>(PhantomData<R>);
 
-impl<U> Default for RemoveResource<U> {
+impl<R> Default for RemoveResource<R> {
     fn default() -> Self {
         Self(PhantomData)
     }
 }
 
-impl<U> RemoveResource<U> {
+impl<R> RemoveResource<R> {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl<T, U> Handler<RemoveResource<U>> for Overseer<T>
+impl<T, R> Handler<RemoveResource<R>> for Overseer<T>
 where
-    U: Any + Send + Sync,
+    R: Any + Send + Sync,
     T: Handle + Send,
 {
-    async fn handle(&mut self, _msg: RemoveResource<U>, _ctx: &black_box::Context<Self>) {
-        self.remove_resource::<U>();
+    async fn handle(&mut self, _msg: RemoveResource<R>, _ctx: &black_box::Context<Self>) {
+        self.remove_resource::<R>();
     }
 }
 
-/// Replaces an existing resource in the Overseer
-pub struct UpdateResource<U>(U);
+/// If the resource exists, replaces it with the provided one, calling on_update for all factories
+///
+/// Otherwise, do nothing
+pub struct UpdateResource<R>(R);
 
-impl<U> UpdateResource<U> {
-    pub fn new(value: U) -> Self {
+impl<R> UpdateResource<R> {
+    pub fn new(value: R) -> Self {
         Self(value)
     }
 }
 
-impl<T, U> Handler<UpdateResource<U>> for Overseer<T>
+impl<T, R> Handler<UpdateResource<R>> for Overseer<T>
 where
-    U: Any + Send + Sync,
+    R: Any + Send + Sync,
     T: Handle + Send,
 {
-    async fn handle(&mut self, msg: UpdateResource<U>, _ctx: &black_box::Context<Self>) {
-        self.update_resource(msg.0);
+    async fn handle(&mut self, msg: UpdateResource<R>, _ctx: &black_box::Context<Self>) {
+        if self.contains_resource::<R>() {
+            self.update_resource(msg.0);
+        }
+    }
+}
+
+/// If the resource exists, replaces it with the provided one, calling on_update for all factories
+///
+/// Otherwise, if the resource does not exist, it inserts it, calling on_insert for all factories
+pub struct UpdateOrInsertResource<R>(R);
+
+impl<R> UpdateOrInsertResource<R> {
+    pub fn new(value: R) -> Self {
+        Self(value)
+    }
+}
+
+impl<T, R> Handler<UpdateOrInsertResource<R>> for Overseer<T>
+where
+    R: Any + Send + Sync,
+    T: Handle + Send,
+{
+    async fn handle(&mut self, msg: UpdateOrInsertResource<R>, _ctx: &black_box::Context<Self>) {
+        if self.contains_resource::<R>() {
+            self.update_resource(msg.0);
+        } else {
+            self.insert_resource(msg.0);
+        }
     }
 }

@@ -36,6 +36,8 @@ pub enum Action {
     Noop,
     /// The Overseer shutdown the associated handle
     Shutdown,
+    /// Shutdown the current actor if any, and rebuild the actor with build()
+    Restart,
 }
 
 pub trait Factory {
@@ -47,7 +49,7 @@ pub trait Factory {
         Action::Noop
     }
 
-    fn on_add(&mut self, _pool: &ResourcePool) -> Action {
+    fn on_insert(&mut self, _pool: &ResourcePool) -> Action {
         Action::Noop
     }
 
