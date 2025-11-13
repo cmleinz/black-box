@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "black-box",
+    "black-box", "black-box-factory",
 ]
 resolver = "3"
 

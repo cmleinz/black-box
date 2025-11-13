@@ -86,6 +86,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "black-box-factory"
+version = "0.1.0"
+dependencies = [
+ "black-box",
+]
+
+[[package]]
 name = "bytes"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
