@@ -1,0 +1,18 @@
+[package]
+name = "black-box"
+version = "0.2.2"
+edition = "2021"
+authors = ["Caleb Leinz <cmleinz@pm.me>"]
+description = "A minimal actor framework"
+readme = "README.md"
+repository = "https://github.com/cmleinz/black-box"
+license = "MIT OR Apache-2.0"
+rust-version = "1.75"
+
+[dependencies]
+async-channel = { version = "2.3.1" }
+pin-project-lite = { version = "0.2.14" }
+
+[dev-dependencies]
+async-executor = { version = "1.13.1" }
+tokio = { version = "1.40.0", features = ["full"] }
