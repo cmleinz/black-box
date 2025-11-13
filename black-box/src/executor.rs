@@ -3,9 +3,9 @@ use std::future::Future;
 use async_channel::{Receiver, Sender};
 
 use crate::{
-    Actor, Address, WeakAddress,
     error::{ActorError, AddressError},
     message::Envelope,
+    Actor, Address, WeakAddress,
 };
 
 const DEFAULT_CAP: usize = 100;
