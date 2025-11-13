@@ -1,42 +1,12 @@
-use black_box::{Actor, Handler};
+use black_box::Actor;
 use std::any::Any;
-use std::marker::PhantomData;
 
 use crate::{Factory, Handle};
 
+pub mod messages;
 mod set;
 
 use set::FactorySet;
-
-pub struct RemoveResource<U>(PhantomData<U>);
-
-impl<U> Default for RemoveResource<U> {
-    fn default() -> Self {
-        Self(PhantomData)
-    }
-}
-
-impl<U> RemoveResource<U> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-pub struct InsertResource<U>(U);
-
-impl<U> InsertResource<U> {
-    pub fn new(value: U) -> Self {
-        Self(value)
-    }
-}
-
-pub struct UpdateResource<U>(U);
-
-impl<U> UpdateResource<U> {
-    pub fn new(value: U) -> Self {
-        Self(value)
-    }
-}
 
 pub struct Overseer<T> {
     map: crate::ResourcePool,
@@ -44,36 +14,6 @@ pub struct Overseer<T> {
 }
 
 impl<T> Actor for Overseer<T> {}
-
-impl<T, U> Handler<RemoveResource<U>> for Overseer<T>
-where
-    U: Any + Send + Sync,
-    T: Handle + Send,
-{
-    async fn handle(&mut self, _msg: RemoveResource<U>, _ctx: &black_box::Context<Self>) {
-        self.remove_resource::<U>();
-    }
-}
-
-impl<T, U> Handler<InsertResource<U>> for Overseer<T>
-where
-    U: Any + Send + Sync,
-    T: Handle + Send,
-{
-    async fn handle(&mut self, msg: InsertResource<U>, _ctx: &black_box::Context<Self>) {
-        self.insert_resource(msg.0);
-    }
-}
-
-impl<T, U> Handler<UpdateResource<U>> for Overseer<T>
-where
-    U: Any + Send + Sync,
-    T: Handle + Send,
-{
-    async fn handle(&mut self, msg: UpdateResource<U>, _ctx: &black_box::Context<Self>) {
-        self.update_resource(msg.0);
-    }
-}
 
 impl<T> Default for Overseer<T> {
     fn default() -> Self {
@@ -120,11 +60,12 @@ where
     where
         R: Any + Send + Sync,
     {
-        let was = self.map.insert(value);
+        let was = self.map.get_mut::<R>()?;
+        let was = std::mem::replace(was, value);
 
         self.factory_set.on_update(&self.map);
 
-        was
+        Some(was)
     }
 
     pub fn insert_resource<R>(&mut self, value: R) -> Option<R>

@@ -1,7 +1,7 @@
-mod factory;
+pub mod overseer;
 mod resource;
 
-pub use factory::{InsertResource, Overseer, RemoveResource, UpdateResource};
+pub use overseer::Overseer;
 pub use resource::ResourcePool;
 
 pub trait Handle {
