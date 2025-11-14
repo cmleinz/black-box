@@ -58,6 +58,15 @@ impl ResourcePool {
     }
 
     #[inline]
+    pub fn get_clone<T: Any + Clone>(&self) -> Option<T> {
+        let key = Key::of::<T>();
+        self.map
+            .get(&key)
+            .and_then(|t| t.value.downcast_ref())
+            .cloned()
+    }
+
+    #[inline]
     pub fn get_mut<T: Any>(&mut self) -> Option<&mut T> {
         let key = Key::of::<T>();
         self.map.get_mut(&key).and_then(|t| t.value.downcast_mut())
