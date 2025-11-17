@@ -47,7 +47,7 @@ impl ResourcePool {
         };
 
         let was = self.remove_with_key(&key);
-        self.map.insert(key, resource).unwrap();
+        self.map.insert(key, resource);
         was
     }
 
