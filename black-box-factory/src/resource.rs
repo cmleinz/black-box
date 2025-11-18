@@ -37,6 +37,12 @@ impl ResourcePool {
     }
 
     #[inline]
+    pub fn contains_id(&self, id: TypeId) -> bool {
+        let key = Key { id };
+        self.map.contains_key(&key)
+    }
+
+    #[inline]
     pub fn insert<T>(&mut self, value: T) -> Option<T>
     where
         T: Any + Send + Sync,
