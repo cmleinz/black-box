@@ -3,9 +3,9 @@ use std::future::Future;
 use async_channel::{Receiver, Sender};
 
 use crate::{
+    Actor, Address, WeakAddress,
     error::{ActorError, AddressError},
     message::Envelope,
-    Actor, Address, WeakAddress,
 };
 
 const DEFAULT_CAP: usize = 100;
@@ -87,7 +87,11 @@ impl ShutdownHandle {
 
 impl<A> Executor<A> {
     pub fn new(actor: A) -> (Self, Address<A>) {
-        let (sender, receiver) = async_channel::bounded(DEFAULT_CAP);
+        Self::new_with_capacity(actor, DEFAULT_CAP)
+    }
+
+    pub fn new_with_capacity(actor: A, cap: usize) -> (Self, Address<A>) {
+        let (sender, receiver) = async_channel::bounded(cap);
         let address = Address::new(sender);
         let (state_tx, state_rx) = async_channel::unbounded();
         let me = Self {
